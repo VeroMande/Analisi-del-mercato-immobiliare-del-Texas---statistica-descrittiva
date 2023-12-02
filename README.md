@@ -1,6 +1,8 @@
 # Analisi del mercato immobiliare del Texas
 ## Statistica descrittiva
 
+Commissionato da: **Profession AI**
+
 Statistica Descrittiva per Data Scientist
 Progetto Finale
 
