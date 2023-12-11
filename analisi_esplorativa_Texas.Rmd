@@ -1,0 +1,464 @@
+---
+title: "ANALISI ESPLORATIVA DEL MERCATO IMMOBILIARE DEL TEXAS"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+#### Precondizioni:
+
+###### Imposto cartella di lavoro
+
+```{r eval=FALSE}
+getwd()
+setwd("/Users/veronicamandelli/Desktop/project_Texas")
+```
+
+```{r eval=FALSE}
+help(nomefunzione)
+?nomefunzione
+```
+
+```{r}
+# carico tutte le librerie
+#install.packages("ggplot")
+library(ggplot2)
+#install.packages("magrittr")
+library(magrittr)
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("moments")
+library(moments)
+```
+
+### 1. Importa il dataset "Real Estate Texas.csv", contenente dei dati riguardanti le vendite di immobili in Texas.
+```{r}
+dati <- read.csv("Real Estate Texas.csv", sep = ",", encoding = 'latin1')
+#estraggo le colonne da un data frame (per non usare simbolo $)
+attach(dati) 
+head(dati) # visualizzo le prime righe del dataset
+```
+
+### 2. Indica il tipo di variabili contenute nel dataset.
+
+| variabile        | descrizione                                                                                                             | tipo                                        |
+|------------------|---------------------------|---------------------------|
+| city             | città                                                                                                                   | qualitativa e categoriale su scala nominale |
+| year             | anno di riferimento                                                                                                     | qualitativa su scala ordinale                     |
+| month            | mese di riferimento                                                                                                     | qualitativa su scala ordinale                        |
+| sales            | numero totale di vendite                                                                                                | quantitativa discreta su scala di rapporti                      |
+| volume           | valore totale delle vendite in milioni di dollari                                                                       | quantitativa continua su scala di rapporti                     |
+| median_price     | prezzo mediano di vendita in dollari                                                                                    | quantitativa continua su scala di rapporti                     |
+| listings         | numero totale di annunci attivi                                                                                         | quantitativa discreta su scala di rapporti                      |
+| months_inventory | quantità di tempo necessaria per vendere tutte le inserzioni correnti al ritmo attuale delle vendite, espresso in mesi. | quantitativa continua su scala di rapporti                    |
+
+### 3. Calcola Indici di posizione, variabilità e forma per tutte le variabili per le quali ha senso farlo, per le altre crea una distribuzione di frequenza. Commenta tutto brevemente.
+
+###### Indici di POSIZIONE:
+
+-   moda
+-   media (aritmetica, ponderata, armonica e geometrica)
+-   mediana
+-   min e max
+-   percentili
+
+Indici di VARIABILITA' E FORMA:
+
+-   Range o intervallo di variazione
+-   Differenza interquartile o range interquartile
+-   Varianza
+-   Deviazione standard o scarto quadratico medio
+-   Coefficiente di variazione
+-   Indice di eterogeneità di Gini (x variabili qualitative)
+
+Indici di FORMA:
+
+-   asimmetria
+-   curtosi
+
+var: **City**
+
+Non è possibile calcolare i vari indici perchè è una variabile qualitativa, quindi calcolo la distribuzione di frequenza
+```{r}
+ni = table(city) #freq assoluta (moda)
+N = dim(dati)[1] #num righe e num colonne->prendo le righe
+fi = table(city)/N # freq relativa
+Ni = cumsum(ni) #freq cumulata
+Fi = Ni/N #freq relative cumulate
+# visualizziamo combinazione frequenze complete in tabella
+table_complete = cbind(ni, fi, Ni, Fi)
+table_complete
+```
+
+Non ha senso neanche calcolare gli indici per le variabili year e month che sono variabili qualitative su scala ordinale qunidi calcolo la distribuzione di frequenze. 
+
+var: **Year**
+```{r}
+ni = table(year) #freq assoluta
+N = dim(dati)[1] #num righe e num colonne->prendo le righe
+fi = table(year)/N # freq relativa
+Ni = cumsum(ni) #freq cumulata
+Fi = Ni/N #freq relative cumulate
+table_complete = cbind(ni, fi, Ni, Fi)
+table_complete
+```
+
+var: **Month**
+```{r}
+ni = table(month) #freq assoluta 
+N = dim(dati)[1] #num righe e num colonne->prendo le righe
+fi = table(month)/N # freq relativa
+Ni = cumsum(ni) #freq cumulata
+Fi = Ni/N #freq relative cumulate
+# visualizziamo combinazione frequenze complete in tabella
+table_complete = cbind(ni, fi, Ni, Fi)
+table_complete
+```
+
+var: **Sales**
+```{r}
+# indici di posizione
+summary(sales)
+
+# indici di variabilità
+indici_variabilità_sales <- data.frame(
+  R = max(sales) - min(sales),  # range o intervallo di variazione
+  diff_interquartile = IQR(sales), #diff tra 3° e 1° quartile
+  varianza = var(sales),
+  dev_standard = sd(sales), #deviazione standard
+  coeff_variazione = sd(sales)/mean(sales) * 100
+)
+print(indici_variabilità_sales)
+
+# indici di forma
+indici_forma_sales <- data.frame(
+  asimmetria = skewness(sales),
+  curtosi = kurtosis(sales) - 3
+)
+print(indici_forma_sales)
+```
+
+var: **Volume**
+```{r}
+# indici di posizione
+summary(volume)
+
+# indici di variabilità
+indici_variabilità_volume <- data.frame(
+  R = max(volume) - min(volume),  # range o intervallo di variazione
+  diff_interquartile = IQR(volume), #diff tra 3° e 1° quartile
+  varianza = var(volume),
+  dev_standard = sd(volume), #deviazione standard
+  coeff_variazione = sd(volume)/mean(volume) * 100
+)
+print(indici_variabilità_volume)
+
+# indici di forma
+indici_forma_volume <- data.frame(
+  asimmetria = skewness(volume),
+  curtosi = kurtosis(volume) - 3
+)
+print(indici_forma_volume)
+```
+
+var: **Median_price**
+```{r}
+# indici di posizione
+summary(median_price)
+
+# indici di variabilità
+indici_variabilità_price <- data.frame(
+  R = max(median_price) - min(median_price),  # range o intervallo di variazione
+  diff_interquartile = IQR(median_price), #diff tra 3° e 1° quartile
+  varianza = var(median_price),
+  dev_standard = sd(median_price), #deviazione standard
+  coeff_variazione = sd(median_price)/mean(median_price) * 100
+)
+print(indici_variabilità_price)
+
+# indici di forma
+indici_forma_median_price <- data.frame(
+  asimmetria = skewness(median_price),
+  curtosi = kurtosis(median_price) - 3
+)
+print(indici_forma_median_price)
+```
+
+var: **Listings**
+```{r}
+# indici di posizione
+summary(listings)
+
+# indici di variabilità
+indici_variabilità_listings <- data.frame(
+  R = max(listings) - min(listings),  # range o intervallo di variazione
+  diff_interquartile = IQR(listings), #diff tra 3° e 1° quartile
+  varianza = var(listings),
+  dev_standard = sd(listings), #deviazione standard
+  coeff_variazione = sd(listings)/mean(listings) * 100
+)
+print(indici_variabilità_listings)
+
+# indici di forma
+indici_forma_listings <- data.frame(
+  asimmetria = skewness(listings),
+  curtosi = kurtosis(listings) - 3
+)
+print(indici_forma_listings)
+```
+
+var: **months_inventory**
+```{r}
+# indici di posizione
+summary(months_inventory)
+
+# indici di variabilità
+indici_variabilità_inventory <- data.frame(
+  R = max(months_inventory) - min(months_inventory),  # range o intervallo di variazione
+  diff_interquartile = IQR(months_inventory), #diff tra 3° e 1° quartile
+  varianza = var(months_inventory),
+  dev_standard = sd(months_inventory), #deviazione standard
+  coeff_variazione = sd(months_inventory)/mean(months_inventory) * 100
+)
+print(indici_variabilità_inventory)
+
+# indici di forma
+indici_forma_months_inventory <- data.frame(
+  asimmetria = skewness(months_inventory),
+  curtosi = kurtosis(months_inventory) - 3
+)
+print(indici_forma_months_inventory)
+```
+
+### 4. Qual è la variabile con variabilità più elevata? Come ci sei arrivato? E quale quella più asimmetrica?
+
+- Per confrontare la variabilità di un campione tra due diverse variabili, si utilizza il **coefficente di variazione**. Dai nostri dati emerge che la variabile **volume** presenta una maggiore variabilità relativa rispetto alla media, con un coefficiente di variazione del 53.71% circa.
+
+- **volume** è anche la variabile più asimmetrica perchè basandomi sull'indice di asimmetria di Fisher, ha il valore che più si allontana dallo 0 (quindi da una distribuzione simmetrica)
+
+### 5. Dividi una delle variabili quantitative in classi, scegli tu quale e come, costruisci la distribuzione di frequenze, il grafico a barre corrispondente e infine calcola l'indice di Gini.
+
+###### Suddivisione in classi di variabile quantitativa (basandosi su lunghezza)
+
+```{r}
+min(sales) #prendo il minimo
+max(sales) #prendo il massimo
+# creo nuova colonna
+class = seq(50, 450, by=50)
+class_sales = cut(sales, breaks = class)
+```
+
+###### Distribuzione di frequenze
+
+```{r}
+ni = table(class_sales) #freq assoluta
+N = dim(dati)[1] #num righe e num colonne->prendo le righe
+fi = table(class_sales)/N # freq relativa
+Ni = cumsum(ni) #freq cumulata
+Fi = Ni/N #freQ relative cumulate
+# visualizziamo combinazione frequenze complete in tabella
+table_complete = cbind(ni, fi, Ni, Fi)
+```
+
+###### Grafico a barre corrispondente
+
+```{r}
+distr_freq = as.data.frame(table_complete)
+
+?barplot
+barplot(ni, 
+        main = "Distribuzione delle classi di lunghezza", 
+        xlab = "classi di lunghezza", 
+        ylab = "frequenze assolute", 
+        ylim = c(0,80),
+        col = "orange")
+```
+
+###### Indice di Gini
+
+```{r}
+gini.index <- function(x){
+  ni = table(x)
+  fi = ni/length(x)
+  fi2 = fi^2
+  J = length(table(x))
+  
+  gini = 1-sum(fi2)
+  gini.norm = gini/((J-1)/J)
+  
+  return(gini.norm)
+}
+table(class_sales)
+gini.index(class_sales)
+```
+
+L'indice di Gini ottenuto è elevato, questo si traduce in un alto livello di diseguaglianza tra le varie classi. 
+
+### 7. Qual è la probabilità che presa una riga a caso di questo dataset essa riporti la città "Beaumont"? E la probabilità che riporti il mese di Luglio? E la probabilità che riporti il mese di dicembre 2012?
+
+$$
+P = \frac{n° casi Favorevoli}{n° casi Totali}
+$$
+
+Probabilità che presa una riga a caso dal dataset riporti la città "Beaumont"
+
+```{r}
+num_osservazioni <- nrow(dati) #tot righe dataset
+num_city_beaumont <- nrow(subset(dati, city == "Beaumont")) #tot righe con città = Beaumont
+p_city_Beaumont = num_city_beaumont/num_osservazioni
+p_city_Beaumont
+```
+
+Probabilità che presa una riga a caso dal dataset riporti il mese di "Luglio"
+
+```{r}
+num_month_luglio <- nrow(subset(dati, month == "7"))
+p_month_july = num_month_luglio/num_osservazioni
+p_month_july
+```
+
+Probabilità che presa una riga a caso dal dataset riporti il mese di "Dicembre" e l'anno "2012"
+
+```{r}
+num_dicembre_2012 <- nrow(subset(dati, month == "12" & year == 2012))
+p_dicembre_2012 <- num_dicembre_2012 / num_osservazioni
+p_dicembre_2012
+```
+
+### 8. Esiste una colonna col prezzo mediano, creane una che indica invece il prezzo medio, utilizzando le altre variabili che hai a disposizione.
+
+```{r}
+mutate(
+  dati, 
+  mean_price = volume / sales) %>% select(volume, sales, mean_price) %>% head(5)
+```
+
+### 9. Prova a creare un'altra colonna che dia un'idea di "efficacia" degli annunci di vendita. Riesci a fare qualche considerazione?
+
+```{r}
+mutate(
+  dati, 
+  efficiency_listings = sales / listings)%>% 
+select(sales, listings, efficiency_listings) %>% head(5)
+```
+
+Considerazione:
+
+Esempi:
+
+-   83	 vendite e 1533 annunci -\> efficiacia annuncio 0.05
+
+-   200 vednite e 1708 annunci -\> efficacia annuncio 0.11
+
+-   124 vendite e 1829 annunci -\> efficacia annuncio 0.06
+
+-   83 vendite e 1533 annunci -\> efficacia annuncio 0.05
+
+In media, sembra che il numero di annunci utilizzati per effettuare le vendite non influenzi in modo significativo l'efficacia delle vendite, poiché l'efficacia rimane relativamente costante nei diversi scenari presentati.
+
+### 10. Prova a creare dei summary(), o semplicemente media e deviazione standard, di alcune variabili a tua scelta, condizionatamente alla città, agli anni e ai mesi. Puoi utilizzare il linguaggio R di base oppure essere un vero Pro con il pacchetto dplyr. Ti lascio un suggerimento in pseudocodice, oltre al cheatsheet nel materiale:
+
+```{r}
+# summary by year
+dati %>%
+  group_by(year) %>%
+  summarise(
+    mean = mean(listings, na.rm = TRUE),
+    sd = sd(listings, na.rm = TRUE),
+    min = min(listings), 
+    max = max(listings))
+
+# summary by city, year and month
+dati %>%
+  group_by(city, year, month) %>%
+  summarise(
+    media_sales = mean(sales, na.rm = TRUE),  .groups = "rowwise") %>% head(5)
+```
+
+### GRAFICI
+
+### 1. Utilizza i boxplot per confrontare la distribuzione del prezzo mediano delle case tra le varie città. Commenta il risultato
+```{r}
+ggplot(dati, aes(x = city, y = median_price)) +
+  geom_boxplot(fill = "pink", ) +
+   stat_summary(fun = "mean", geom = "point", shape = 18, size = 3, color = "red") +
+  labs(title = "Distribuzione del prezzo mediano delle case tra le varie città",
+       x = "Città",
+       y = "Prezzo mediano")+
+  theme_minimal()
+```
+
+Considerazioni:
+
+-  Centralità della distribuzione: Si tratta di una distribuzione asimmetrica perchè la mediana non è al centro (ma è spostata in alcuni casi più verso l'alto e in altri più verso il basso)
+
+-  Distribuzione: ci sono variazioni nella distribuzione dei prezzi mediani tra le città in quanto i boxplot non sono sulla stessa riga (hanno prezzo mediano molto diverso) 
+
+-  Variabilità dei dati: bassa dispersione dei dati in quanto la lunghezza dei box e anche le code sono approssimitivamente le stesse 
+
+-  Presenza di valori anomali: Nelle città di "Beaumont", "Bryan-College Station", e "Wichita Falls" sono presenti dei valori anomali (punti esterni alle barre)
+
+
+### 2. Utilizza i boxplot o qualche variante per confrontare la distribuzione del valore totale delle vendite tra le varie città ma anche tra i vari anni. Qualche considerazione da fare?
+```{r}
+ggplot(dati, aes(x = factor(year), y = volume, fill = city)) +
+  geom_boxplot() +
+  labs(title = "Distribuzione del Valore Totale delle Vendite per Città e Anno",
+       x = "Città",
+       y = "Valore Totale Vendite",
+       fill = "Città") +
+  theme_minimal() 
+```
+
+Nel periodo compreso tra il 2012 e il 2014, le città di Bryan-College-Station e Tyler hanno evidenziato prestazioni di vendita superiori rispetto a Beaumont e Wichita Falls. Questo trend indica un notevole successo commerciale per le prime due città durante quel triennio specifico.
+
+### 3. Usa un grafico a barre sovrapposte per confrontare il totale delle vendite nei vari mesi, sempre considerando le città. Prova a commentare ciò che viene fuori. Già che ci sei prova anche il grafico a barre normalizzato. Consiglio: Stai attento alla differenza tra geom_bar() e geom_col(). PRO LEVEL: cerca un modo intelligente per inserire ANCHE la variabile Year allo stesso blocco di codice, senza però creare accrocchi nel grafico.
+
+```{r}
+# Grafico a barre sovrapposte
+ggplot(dati, aes(x = factor(month), y = sales, fill = city)) +
+  geom_bar(stat = "identity", position = "stack") + #stack per barre sovrapposte
+  facet_wrap(~year, scales = "free", ncol = 2) +
+  labs(title = "Vendite mensili per Città (2010-2014)",
+       x = "Mese",
+       y = "Totale Vendite",
+       fill = "Città") +
+  theme_minimal()
+```
+
+Per ciascun anno nel periodo dal 2010 al 2014, si è osservato un incremento significativo nelle vendite durante i mesi estivi, vale a dire maggio, giugno, luglio e agosto. Questa tendenza è particolarmente evidente nella città di Bryan-College Station, dove le vendite risultano essere consistentemente superiori in questi mesi specifici.
+
+```{r}
+# Grafico a barre normalizzato
+ggplot(dati, aes(x = factor(month), y = sales, fill = city)) +
+  geom_bar(stat = "identity", position = "fill") +  # "fill" per normalizzare le barre
+  facet_wrap(~year, scales = "free", ncol = 2) +
+  labs(title = "Vendite mensili normalizzate per Città (2010-2014)",
+       x = "Mese",
+       y = "Percentuale di Vendite",
+       fill = "Città") 
+```
+
+
+### 4. Prova a creare un line chart di una variabile a tua scelta per fare confronti commentati fra città e periodi storici. Ti avviso che probabilmente all'inizio ti verranno fuori linee storte e poco chiare, ma non demordere. Consigli: Prova inserendo una variabile per volta. Prova a usare variabili esterne al dataset, tipo vettori creati da te appositamente.
+```{r}
+year_month <- as.Date(paste(dati$year, dati$month, "01", sep = "-"))
+length(year_month)
+length(dati$sales)
+
+
+ggplot(dati, aes(x = year_month, y = sales, group=city, color=city)) +
+  geom_line(linewidth = 0.7) +
+  geom_point(size = 1.5, shape = 16) +  # Aggiungi i punti
+  labs(title = "Andamento delle vendite nel tempo",
+       x = "Date",
+       y = "Sales") +
+  scale_x_date(labels = scales::date_format("%d %B %y"), date_breaks = "1 year", date_minor_breaks = "1 month", limits = as.Date(c("2010-01-01", "2014-12-31")) ) +
+  theme_linedraw()+
+  theme(axis.text.x = element_text(angle = 25, hjust = 1, vjust = 1, size = 8))
+```
+
+Considerazioni:
+Sto esaminando il confronto tra il numero totale di vendite (sales) registrate ogni mese nel periodo compreso tra il 2010 e il 2014. In questo contesto, emerge chiaramente una tendenza di vendite superiori nelle città di Bryan-College Station e Tyler nel corso di questi anni, con un picco più elevarto intorno a maggio 2014 per la città di Tyler.
+
